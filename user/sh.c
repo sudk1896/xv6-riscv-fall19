@@ -3,7 +3,7 @@
 #include "kernel/types.h"
 #include "user/user.h"
 #include "kernel/fcntl.h"
-
+#include "user/pingpong.c"
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -164,6 +164,9 @@ main(void)
         fprintf(2, "cannot cd %s\n", buf+3);
       continue;
     }
+    else if (buf[0]=='p' && buf[1]=='i' && buf[2]=='n' && buf[3]=='g'){
+	pingpong();
+    }		
     if(fork1() == 0)
       runcmd(parsecmd(buf));
     wait();
