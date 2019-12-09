@@ -72,8 +72,13 @@ void test1()
   }
   if(pid == 0){
       close(fds[0]);
+      int cnt = 0;
       while(1) {
         a = sbrk(PGSIZE);
+	++cnt;
+	if (cnt == 31975)
+		printf("on 31975th page\n");
+	printf("a is %d\n", a);
         if (a == (char*)0xffffffffffffffffL)
           exit(0);
         *(int *)(a+4) = 1;
