@@ -78,7 +78,7 @@ void test1()
 	++cnt;
 	if (cnt == 31975)
 		printf("on 31975th page\n");
-	printf("a is %d\n", a);
+	//printf("a is %d\n", a);
         if (a == (char*)0xffffffffffffffffL)
           exit(0);
         *(int *)(a+4) = 1;
@@ -87,6 +87,17 @@ void test1()
           exit(1);
         }
       }
+      /*	a = sbrk(PGSIZE);
+	++cnt;
+	//printf("a is %d\n", a);
+        if (a == (char*)0xffffffffffffffffL)
+          exit(0);
+        *(int *)(a+4) = 1;
+        if (write(fds[1], "x", 1) != 1) {
+          printf("write failed");
+          exit(1);
+        }*/
+
       exit(0);
   }
   close(fds[1]);

@@ -146,9 +146,14 @@ bd_malloc(uint64 nbytes)
     release(&lock);
     return 0;
   }
-   
-  // Found a block; pop it and potentially split it.
-  char *p = lst_pop1(&bd_sizes[k].free, k);
+   if (k == 22){
+	printf("malloc K = 22\n");
+	printf("allock k=22 - %s\n", bd_sizes[k].alloc);
+	lst_print(&bd_sizes[k].free);
+	printf("\n");
+   } 
+  // Found a block; pop it and potentially split it. 
+  char *p = lst_pop1(&bd_sizes[k].free, k);	
   memset(p, 0, sizeof(char)*BLK_SIZE(k));
   bit_flip(bd_sizes[k].alloc, blk_index(k, p)/2);
   for(; k > fk; k--) {
@@ -158,6 +163,10 @@ bd_malloc(uint64 nbytes)
     bit_set(bd_sizes[k].split, blk_index(k, p));
     bit_flip(bd_sizes[k-1].alloc, blk_index(k-1, p)/2);
     lst_push(&bd_sizes[k-1].free, q);
+    if (k-1 == 22){
+	printf("malloc K-1=22\n");
+	lst_print(&bd_sizes[k].free);
+    }	
   }
   release(&lock);
   return p;
@@ -192,7 +201,10 @@ bd_free(void *p) {
     }
     // budy is free; merge with buddy
     q = addr(k, buddy);
-    lst_remove(q);    // remove buddy from free list
+    lst_remove1(q, k);    // remove buddy from free list
+    if (k == 22){
+	printf("bd_free K=22\n");	
+    }
     if(buddy % 2 == 0) {
       p = q;
     }
@@ -201,6 +213,10 @@ bd_free(void *p) {
     bit_clear(bd_sizes[k+1].split, blk_index(k+1, p));
   }
   lst_push(&bd_sizes[k].free, p);
+  if (k == 22){
+	printf("bd_free K=22 , exit\n");
+	lst_print(&bd_sizes[k].free);
+  }
   release(&lock);
 }
 
@@ -243,10 +259,14 @@ bd_mark(void *start, void *stop)
     }
 	bit_flip(bd_sizes[k].alloc, bi/2);
    }
-   if (k<MAXSIZE){
+   if (k<MAXSIZE-1){
 	if (start == bd_base){
 		if (bit_isset(bd_sizes[k].alloc, bj/2)){
 			lst_push(&bd_sizes[k].free, addr(k, bj));
+			if (k == 22){
+				printf("bd_base K\n");
+				lst_print(&bd_sizes[k].free);
+			}
 		}
 		printf("bd_base, k - %d, bi - %d, bj - %d\n", k, bi_copy, bj);
 	}
@@ -255,10 +275,20 @@ bd_mark(void *start, void *stop)
 		if (!(bi_copy <= blk_p)){
 			if (bit_isset(bd_sizes[k].alloc, bi_copy/2)){
 				int buddy_end = (bi_copy%2 == 0) ? bi_copy + 1: bi_copy - 1;
-				if (buddy_end < bi_copy)
+				if (buddy_end < bi_copy){
 					lst_push(&bd_sizes[k].free, addr(k, buddy_end));
-				else if (buddy_end == bj)
+					if (k == 22){
+						printf("K=22 list - if\n");
+						lst_print(&bd_sizes[k].free);
+					}
+				}
+				else if (buddy_end == bj){
 					lst_push(&bd_sizes[k].free, addr(k, buddy_end));
+					if (k == 22){
+						printf("K=22 list - else\n");
+						lst_print(&bd_sizes[k].free);
+						}
+					}
 			}
 		}
 		printf("bd_end, k - %d, bi - %d, bj-%d\n", k, bi_copy, bj);
@@ -274,6 +304,9 @@ bd_initfree_pair(int k, int bi) {
   int free = 0;
   if (bit_isset(bd_sizes[k].alloc, bi/2)){
 	free = BLK_SIZE(k);
+	if (k == 22){
+		printf("There is a free block at 22\n");
+	}
   }
   return free;
 }
@@ -352,6 +385,10 @@ bd_init(void *base, void *end) {
   // allocate half of that. For each pair of buddies, alloc[i] stores is_A_free XOR is_B_Free 
   for (int k = 0; k < nsizes; k++) {
     lst_init(&bd_sizes[k].free);
+    if (k == 22){
+	printf("lst_init k=22\n");
+	lst_print(&bd_sizes[k].free);
+    }
     int num_blk = MAXSIZE - k; 	
     if (num_blk >= 0 && num_blk < 4){
 	sz = sizeof(char) * (ROUNDUP(NBLK(k), 8)/8);

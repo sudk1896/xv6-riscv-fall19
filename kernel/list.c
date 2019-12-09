@@ -25,7 +25,7 @@ void
 lst_remove(struct list *e) {
   if (e->prev == 0 ){
 	printf("state of list - %d\n", lst_empty(e));
-	lst_print(e);
+	//lst_print(e);
 	printf("something is wrong\n"); 
   }
   e->prev->next = e->next;
@@ -37,7 +37,7 @@ lst_remove1(struct list *e, int k) {
   if (e->prev == 0 ){
 	printf("K is %d\n", k);
 	printf("state of list - %d\n", lst_empty(e));
-	lst_print(e);
+	//lst_print(e);
 	printf("something is wrong\n"); 
   }
   e->prev->next = e->next;
