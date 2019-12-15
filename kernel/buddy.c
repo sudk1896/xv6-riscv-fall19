@@ -259,6 +259,14 @@ bd_mark(void *start, void *stop)
     }
 	bit_flip(bd_sizes[k].alloc, bi/2);
    }
+   // In the allocator there are 24 levels, numbered from [0..23]
+   // For ranges [base p) (call R1) & [end HEAP_SIZE)(call R2), we mark the indices of the blocks
+   // [bi bj) (above). For all levels except level 22, R1 and R2 are disjoint. 
+   // Inspect the printf statement below for that. [bi bj) for Level 22 is [0 1) & [1 2)
+   // for R1 & R2 respectively, so block 0 & block 1 both are allocated and 
+   // hence alloc[0] = 0 (0 xor 0). But the above for loop will mark alloc[0] = 1 after
+   // bd_mark is invoked for both R1 & R2 (in bd_init). Hence, just ignore k = 22.
+   // You can convince yourself by removing (k < MAXSIZE - 1) and by the printf statements inside. 
    if (k<MAXSIZE-1){
 	if (start == bd_base){
 		if (bit_isset(bd_sizes[k].alloc, bj/2)){
@@ -268,6 +276,8 @@ bd_mark(void *start, void *stop)
 				lst_print(&bd_sizes[k].free);
 			}
 		}
+		// For each level k, this prints [a b) where blocks in this range are marked
+		// allocated.
 		printf("bd_base, k - %d, bi - %d, bj - %d\n", k, bi_copy, bj);
 	}
 	else{
