@@ -146,14 +146,15 @@ bd_malloc(uint64 nbytes)
     release(&lock);
     return 0;
   }
-   if (k == 22){
+
+ /*   if (k == 22){
 	printf("malloc K = 22\n");
 	printf("allock k=22 - %s\n", bd_sizes[k].alloc);
 	lst_print(&bd_sizes[k].free);
 	printf("\n");
-   } 
+   } */
   // Found a block; pop it and potentially split it. 
-  char *p = lst_pop1(&bd_sizes[k].free, k);	
+  char *p = lst_pop(&bd_sizes[k].free);	
   memset(p, 0, sizeof(char)*BLK_SIZE(k));
   bit_flip(bd_sizes[k].alloc, blk_index(k, p)/2);
   for(; k > fk; k--) {
@@ -163,10 +164,10 @@ bd_malloc(uint64 nbytes)
     bit_set(bd_sizes[k].split, blk_index(k, p));
     bit_flip(bd_sizes[k-1].alloc, blk_index(k-1, p)/2);
     lst_push(&bd_sizes[k-1].free, q);
-    if (k-1 == 22){
+    /*if (k-1 == 22){
 	printf("malloc K-1=22\n");
 	lst_print(&bd_sizes[k].free);
-    }	
+    }*/	
   }
   release(&lock);
   return p;
@@ -201,7 +202,7 @@ bd_free(void *p) {
     }
     // budy is free; merge with buddy
     q = addr(k, buddy);
-    lst_remove1(q, k);    // remove buddy from free list
+    lst_remove(q);    // remove buddy from free list
     if (k == 22){
 	printf("bd_free K=22\n");	
     }
@@ -213,10 +214,10 @@ bd_free(void *p) {
     bit_clear(bd_sizes[k+1].split, blk_index(k+1, p));
   }
   lst_push(&bd_sizes[k].free, p);
-  if (k == 22){
+  /*if (k == 22){
 	printf("bd_free K=22 , exit\n");
 	lst_print(&bd_sizes[k].free);
-  }
+  }*/
   release(&lock);
 }
 
@@ -314,9 +315,9 @@ bd_initfree_pair(int k, int bi) {
   int free = 0;
   if (bit_isset(bd_sizes[k].alloc, bi/2)){
 	free = BLK_SIZE(k);
-	if (k == 22){
+	/*if (k == 22){
 		printf("There is a free block at 22\n");
-	}
+	}*/
   }
   return free;
 }
