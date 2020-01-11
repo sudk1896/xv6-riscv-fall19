@@ -324,7 +324,12 @@ sfence_vma()
 #define PGSIZE 4096 // bytes per page
 #define PGSHIFT 12  // bits of offset within a page
 
+/* Rounds up the address sz which might not be a multiple of PGSIZE
+to an address which is a multiple of PGSIZE, ROUNDSUP being the operative word */
 #define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
+
+/* Lowers address a which might not be a multiple of PGSIZE
+to a multiple of PGSIZE, LOWERS being the operative word */
 #define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))
 
 #define PTE_V (1L << 0) // valid
@@ -334,6 +339,13 @@ sfence_vma()
 #define PTE_U (1L << 4) // 1 -> user can access
 
 // shift a physical address to the right place for a PTE.
+/*
+In xv6, physical address are currently 56-bits (2^56 -1 addressable memory).
+Last 12-bits are from the offset. Right-shifting by 12-bits will remove the offset.
+This leaves us with a 56-bit address with the last 44-bits being the PTE and first 12-bits
+being zeros. By Left-shifting by 10-bits, the last 10-bits becoming zeros which
+are used for permissions.
+*/
 #define PA2PTE(pa) ((((uint64)pa) >> 12) << 10)
 
 #define PTE2PA(pte) (((pte) >> 10) << 12)
@@ -343,6 +355,8 @@ sfence_vma()
 // extract the three 9-bit page table indices from a virtual address.
 #define PXMASK          0x1FF // 9 bits
 #define PXSHIFT(level)  (PGSHIFT+(9*(level)))
+
+/* Get the the value of L2, L1 or L0 index (9-bits) based on level */
 #define PX(level, va) ((((uint64) (va)) >> PXSHIFT(level)) & PXMASK)
 
 // one beyond the highest possible virtual address.

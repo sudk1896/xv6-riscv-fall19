@@ -121,6 +121,12 @@ walkaddr(pagetable_t pagetable, uint64 va)
 // add a mapping to the kernel page table.
 // only used when booting.
 // does not flush TLB or enable paging.
+/*
+va - Virtual address to map to a physical address
+pa - physical address to which to map the va
+sz - Size of the physical memory to use
+perm - Permissions on that PTE for va
+*/
 void
 kvmmap(uint64 va, uint64 pa, uint64 sz, int perm)
 {
@@ -160,6 +166,14 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
 
   a = PGROUNDDOWN(va);
   last = PGROUNDDOWN(va + size - 1);
+  /*
+   walk returns the physical address of the L0 PTE 
+   that will store the translation va->pa. This address
+   is stored in pte. The L0 PTE stores the Physical Page Number
+   i.e. PPN. On de-referncing the L0 PTE via *pte and *pte = PA2PTE(pa)
+   we store the 44-bit PPN in the physical location pointed by pte. We
+   repeat this process for PGSIZE'd units i.e. every 4096 bytes. 
+  */
   for(;;){
     if((pte = walk(pagetable, a, 1)) == 0)
       return -1;
@@ -451,3 +465,4 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+
