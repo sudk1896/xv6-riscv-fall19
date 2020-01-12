@@ -315,6 +315,48 @@ freewalk(pagetable_t pagetable)
   kfree((void*)pagetable);
 }
 
+/*
+Prints the page table according to the level.
+Supports only 3-level Page tables 
+*/
+static void 
+vmprint_aux(pagetable_t pagetable, int level)
+{
+   for(int i=0; i < 512; i++){
+    pte_t pte = pagetable[i];
+    if ((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
+     if (level == 2)
+       printf("..");
+     else if (level == 1)
+       printf(".. ..");
+     else
+	panic("Something is wrong with pagetable traversing");
+    /* Stores the 44-bit PPN of the next level page table */ 
+     uint64 child = PTE2PA(pte);
+     printf("%d: pte %p pa %p\n", i, pte, child);
+     vmprint_aux((pagetable_t)child, level - 1);
+   }
+   else if (pte & PTE_V){
+	/* Stores the 44-bit PPN point to the physical memory */
+	uint64 child = PTE2PA(pte);
+	printf(".. .. ..%d: pte %p pa %p\n", i, pte, child); 
+   }
+  }
+  return;
+}
+
+/*
+Prints 3-level page table by
+calling the vmprint_aux method.
+Starts from L2 page table
+*/
+void
+vmprint(pagetable_t pagetable)
+{
+  printf("page table %p\n", pagetable);   
+  vmprint_aux(pagetable, 2); 
+}
+
 // Free user memory pages,
 // then free page-table pages.
 void
