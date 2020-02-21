@@ -6,6 +6,7 @@ _*
 *.sym
 *.img
 *.pyc
+*.swp
 vectors.S
 bootblock
 entryother
@@ -21,3 +22,6 @@ myapi.key
 xv6.out*
 .vagrant/
 submissions/
+kernel/tags
+user/tags
+tags
